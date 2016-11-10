@@ -1,3 +1,4 @@
+<<<<<<< 5bd8c2ebef4b2fac6a680019c9bff1aa8a2855bb
 # Built application files
 *.apk
 *.ap_
@@ -38,3 +39,14 @@ captures/
 
 # Keystore files
 *.jks
+=======
+*.iml
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+>>>>>>> Initial commit
