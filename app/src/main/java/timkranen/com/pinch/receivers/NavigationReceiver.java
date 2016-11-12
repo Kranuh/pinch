@@ -12,7 +12,7 @@ import com.bluelinelabs.conductor.changehandler.HorizontalChangeHandler;
 
 import java.util.HashMap;
 
-import timkranen.com.pinch.controllers.DetailController;
+import timkranen.com.pinch.controllers.UserController;
 import timkranen.com.pinch.controllers.MainController;
 
 /**
@@ -51,8 +51,8 @@ public class NavigationReceiver extends BroadcastReceiver {
         if(controllerID != -1) {
             Controller targetController = new NavigationMap().get(controllerID);
 
-            if(targetController instanceof DetailController) {
-                setDetailControllerExtras((DetailController) targetController, intent);
+            if(targetController instanceof UserController) {
+                setDetailControllerExtras((UserController) targetController, intent);
             }
 
             RouterTransaction routerTransaction = RouterTransaction.builder(targetController)
@@ -64,7 +64,7 @@ public class NavigationReceiver extends BroadcastReceiver {
         }
     }
 
-    private void setDetailControllerExtras(DetailController targetController, Intent intent) {
+    private void setDetailControllerExtras(UserController targetController, Intent intent) {
         if(intent.hasExtra(EXTRA_DETAIL_LOGIN_NAME)) {
             targetController.setLoginName(intent.getStringExtra(EXTRA_DETAIL_LOGIN_NAME));
         }
@@ -73,7 +73,7 @@ public class NavigationReceiver extends BroadcastReceiver {
     public static class NavigationMap extends HashMap<Integer, Controller> {
         public NavigationMap() {
             put(MainController.CONTROLLER_ID, new MainController());
-            put(DetailController.CONTROLLER_ID, new DetailController());
+            put(UserController.CONTROLLER_ID, new UserController());
         }
     }
 }

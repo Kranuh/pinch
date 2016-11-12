@@ -3,7 +3,6 @@ package timkranen.com.pinch.recyclerview.viewholders;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
@@ -18,9 +17,8 @@ import com.bumptech.glide.request.target.BitmapImageViewTarget;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import butterknife.OnClick;
 import timkranen.com.pinch.R;
-import timkranen.com.pinch.controllers.DetailController;
+import timkranen.com.pinch.controllers.UserController;
 import timkranen.com.pinch.model.GithubSubscriber;
 import timkranen.com.pinch.receivers.NavigationReceiver;
 
@@ -85,7 +83,7 @@ public class GithubSubscriberViewHolder extends RecyclerView.ViewHolder {
         @Override
         public void onClick(View view) {
             Intent intent = new Intent(NavigationReceiver.ACTION_NAVIGATE_TO);
-            intent.putExtra(NavigationReceiver.EXTRA_CONTROLLER_ID, DetailController.CONTROLLER_ID);
+            intent.putExtra(NavigationReceiver.EXTRA_CONTROLLER_ID, UserController.CONTROLLER_ID);
             intent.putExtra(NavigationReceiver.EXTRA_DETAIL_LOGIN_NAME, loginName);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }

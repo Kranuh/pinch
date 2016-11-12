@@ -16,7 +16,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import timkranen.com.pinch.R;
 import timkranen.com.pinch.controllers.BindingController;
-import timkranen.com.pinch.controllers.DetailController;
+import timkranen.com.pinch.controllers.UserController;
 import timkranen.com.pinch.controllers.MainController;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onChangeStarted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
                 if (to instanceof BindingController) {
-                    setBackButtonVisibility(to instanceof DetailController);
+                    setBackButtonVisibility(to instanceof UserController);
                 }
             }
 
