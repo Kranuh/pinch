@@ -6,36 +6,27 @@ import java.util.List;
 
 import rx.Observable;
 import rx.Observer;
-import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
-import rx.exceptions.Exceptions;
 import rx.functions.Func1;
 import rx.schedulers.Schedulers;
 import timkranen.com.pinch.api.RequestListener;
 import timkranen.com.pinch.api.RestAdapter;
 import timkranen.com.pinch.localstorage.LocalStorageManager;
 import timkranen.com.pinch.model.GithubSubscriber;
+import timkranen.com.pinch.model.GithubUser;
 
 /**
  * @author tim on [11/9/16]
- *
- * The main communication class for all subscriber API interaction
- *
- * When communicating with multiple endpoints this should become more abstracted
- *
- * The RxJava stuff is really weird to read if you have never seen it before, I haven't used it very much myself
- * but currently always use it in personal projects, I've commented the basics of how it works
+ *         <p>
+ *         The main communication class for all github API interaction
+ *         <p>
+ *         When communicating with multiple endpoints this should become more abstracted
+ *         <p>
+ *         The RxJava stuff is really weird to read if you have never seen it before, I haven't used it very much myself
+ *         but currently always use it in personal projects, I've commented the basics of how it works
  */
-public class SubscriberFetcher {
-    private static final String TAG = SubscriberFetcher.class.getSimpleName();
-
-    public interface SubscribersFetchedListener {
-        void onFetchCompleted();
-
-        void onFetchedError(Throwable e);
-
-        void onNoResult();
-    }
+public class GithubDataFetcher {
+    private static final String TAG = GithubDataFetcher.class.getSimpleName();
 
     public synchronized static void fetchSubscribers(String repoName, final RequestListener subscriberRequestListener) {
         SubscriberApi subscriberApi = RestAdapter.getDebugAdapter(SubscriberApi.class, SubscriberApi.BASE_URL);
@@ -47,7 +38,7 @@ public class SubscriberFetcher {
                 .flatMap(new Func1<List<GithubSubscriber>, Observable<List<GithubSubscriber>>>() {
                     @Override
                     public Observable<List<GithubSubscriber>> call(List<GithubSubscriber> githubSubscribers) {
-                        if(githubSubscribers != null && !githubSubscribers.isEmpty()) {
+                        if (githubSubscribers != null && !githubSubscribers.isEmpty()) {
                             return new LocalStorageManager().cacheSubscribers(githubSubscribers);
                         }
 
@@ -83,6 +74,43 @@ public class SubscriberFetcher {
                     }
                 });
     }
+
+    public static synchronized void fetchUser(String loginName, final RequestListener requestListener) {
+        UserApi userApi = RestAdapter.getDebugAdapter(UserApi.class, UserApi.BASE_URL);
+        userApi.getUser(loginName)
+                .subscribeOn(Schedulers.io())
+                .observeOn(Schedulers.io())
+                .flatMap(new Func1<GithubUser, Observable<GithubUser>>() {
+                    @Override
+                    public Observable<GithubUser> call(GithubUser githubUser) {
+                        if (githubUser != null) {
+                            return new LocalStorageManager().cacheUser(githubUser);
+                        }
+
+                        return null;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<GithubUser>() {
+                    @Override
+                    public void onCompleted() {
+
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        requestListener.onRequestFailed(e);
+                    }
+
+                    @Override
+                    public void onNext(GithubUser githubUser) {
+                        requestListener.onRequestCompleted();
+                    }
+                });
+    }
+
+
 }
 
 

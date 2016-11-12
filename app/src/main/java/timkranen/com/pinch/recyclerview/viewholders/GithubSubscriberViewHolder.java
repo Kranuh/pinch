@@ -67,21 +67,26 @@ public class GithubSubscriberViewHolder extends RecyclerView.ViewHolder {
 
 
         onSubscriberClickedListener.setContext(context);
+        onSubscriberClickedListener.setLoginName(subscriber.getLogin());
 
     }
 
     private class OnSubscriberClickedListener implements View.OnClickListener {
 
         private Context context;
+        private String loginName;
 
         public void setContext(Context context) {
             this.context = context;
         }
 
+        public void setLoginName(String loginName) { this.loginName = loginName; }
+
         @Override
         public void onClick(View view) {
             Intent intent = new Intent(NavigationReceiver.ACTION_NAVIGATE_TO);
             intent.putExtra(NavigationReceiver.EXTRA_CONTROLLER_ID, DetailController.CONTROLLER_ID);
+            intent.putExtra(NavigationReceiver.EXTRA_DETAIL_LOGIN_NAME, loginName);
             LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
         }
     }

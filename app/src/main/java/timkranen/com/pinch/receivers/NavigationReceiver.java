@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import com.bluelinelabs.conductor.Controller;
 import com.bluelinelabs.conductor.Router;
 import com.bluelinelabs.conductor.RouterTransaction;
+import com.bluelinelabs.conductor.changehandler.HorizontalChangeHandler;
 
 import java.util.HashMap;
 
@@ -25,6 +26,8 @@ public class NavigationReceiver extends BroadcastReceiver {
     public static final String ACTION_NAVIGATE_TO = TAG + ".actionNavigateTo";
     public static final String EXTRA_CONTROLLER_ID = "controllerId";
 
+    public static final String EXTRA_DETAIL_LOGIN_NAME = "detailController.loginName";
+
     private Router _router;
 
     public NavigationReceiver(Router router) {
@@ -34,7 +37,7 @@ public class NavigationReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         if(intent != null && intent.getAction().equals(ACTION_NAVIGATE_TO)) {
-            navigate(intent.getIntExtra(EXTRA_CONTROLLER_ID, -1));
+            navigate(intent.getIntExtra(EXTRA_CONTROLLER_ID, -1), intent);
         }
     }
 
@@ -44,10 +47,26 @@ public class NavigationReceiver extends BroadcastReceiver {
         return intentFilter;
     }
 
-    private void navigate(int controllerID) {
+    private void navigate(int controllerID, Intent intent) {
         if(controllerID != -1) {
             Controller targetController = new NavigationMap().get(controllerID);
-            _router.pushController(RouterTransaction.builder(targetController).build());
+
+            if(targetController instanceof DetailController) {
+                setDetailControllerExtras((DetailController) targetController, intent);
+            }
+
+            RouterTransaction routerTransaction = RouterTransaction.builder(targetController)
+                    .pushChangeHandler(new HorizontalChangeHandler())
+                    .popChangeHandler(new HorizontalChangeHandler())
+                    .build();
+
+            _router.pushController(routerTransaction);
+        }
+    }
+
+    private void setDetailControllerExtras(DetailController targetController, Intent intent) {
+        if(intent.hasExtra(EXTRA_DETAIL_LOGIN_NAME)) {
+            targetController.setLoginName(intent.getStringExtra(EXTRA_DETAIL_LOGIN_NAME));
         }
     }
 

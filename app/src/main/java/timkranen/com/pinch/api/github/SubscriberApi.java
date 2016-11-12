@@ -13,8 +13,8 @@ import timkranen.com.pinch.model.GithubSubscriber;
  * Service class for Retrofit, defines subscriber API endpoint
  */
 public interface SubscriberApi {
-    String BASE_URL = "https://api.github.com/repos/android/";
+    String BASE_URL = "https://api.github.com/repos/";
 
     @GET("{repoName}/subscribers")
-    Observable<List<GithubSubscriber>> getSubscribers(@Path("repoName") String repoName);
+    Observable<List<GithubSubscriber>> getSubscribers(@Path(value = "repoName", encoded = true) String repoName);
 }
