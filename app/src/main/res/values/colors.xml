@@ -5,4 +5,6 @@
     <color name="colorAccent">#FFC107</color>
     <color name="textGray">#8a8b8c</color>
     <color name="white">#FFFFFF</color>
+    <color name="deep_orange">#FF5722</color>
+    <color name="lime">#CDDC39</color>
 </resources>

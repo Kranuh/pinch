@@ -1,10 +1,14 @@
 package timkranen.com.pinch.controllers;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.support.annotation.NonNull;
+import android.support.v4.app.ShareCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
+import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -40,11 +44,23 @@ public class UserController extends BindingController {
     @BindView(R.id.repo_count)
     protected CountCircularView repoCount;
 
+    @BindView(R.id.gists_count)
+    protected CountCircularView gistsCount;
+
+    @BindView(R.id.followers_count)
+    protected CountCircularView followersCount;
+
+    @BindView(R.id.following_count)
+    protected CountCircularView followingCount;
+
+    @BindView(R.id.email_button)
+    protected AppCompatButton emailButton;
+
     private String loginName;
 
     @Override
     protected int getLayoutResId() {
-        return R.layout.detail_controller;
+        return R.layout.user_controller;
     }
 
     @Override
@@ -115,10 +131,32 @@ public class UserController extends BindingController {
             }
         });
 
-        repoCount.setColor(ContextCompat.getColor(getActivity(), R.color.colorPrimary));
-        repoCount.setCount(githubUser.getPublicRepos());
-        repoCount.setTitle("Public Repos");
+       setCounts(githubUser);
 
+        if(githubUser.getEmail() != null && !githubUser.getEmail().isEmpty()) {
+            emailButton.setText("Email " + githubUser.getLogin());
+            emailButton.setOnClickListener(new EmailClickListener(githubUser.getEmail()));
+        } else {
+            emailButton.setVisibility(View.GONE);
+        }
+    }
+
+    private void setCounts(GithubUser user) {
+        repoCount.setColor(ContextCompat.getColor(getActivity(), R.color.colorPrimary));
+        repoCount.setCount(user.getPublicRepos());
+        repoCount.setTitle(getActivity().getString(R.string.public_repos));
+
+        gistsCount.setColor(ContextCompat.getColor(getActivity(), R.color.colorAccent));
+        gistsCount.setCount(user.getPublicGists());
+        gistsCount.setTitle(getActivity().getString(R.string.public_gists));
+
+        followersCount.setColor(ContextCompat.getColor(getActivity(), R.color.deep_orange));
+        followersCount.setCount(user.getFollowers());
+        followersCount.setTitle(getActivity().getString(R.string.followers));
+
+        followingCount.setColor(ContextCompat.getColor(getActivity(), R.color.lime));
+        followingCount.setCount(user.getFollowing());
+        followingCount.setTitle(getActivity().getString(R.string.following));
     }
 
     @Override
@@ -128,5 +166,20 @@ public class UserController extends BindingController {
 
     public void setLoginName(String loginName) {
         this.loginName = loginName;
+    }
+
+    private class EmailClickListener implements View.OnClickListener {
+
+        private String email;
+
+        public EmailClickListener(String email) {
+            this.email = email;
+        }
+
+        @Override
+        public void onClick(View view) {
+            Intent emailIntent = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:" + email));
+            startActivity(Intent.createChooser(emailIntent, "Send Email"));
+        }
     }
 }

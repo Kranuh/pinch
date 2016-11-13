@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.ColorFilter;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.support.annotation.ColorInt;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -63,7 +64,9 @@ public class CountCircularView extends LinearLayout {
 
     private void updateView() {
         Drawable circleBackground = countBackground.getBackground();
-        circleBackground.setColorFilter(this.color, PorterDuff.Mode.SRC_ATOP);
+        if(circleBackground instanceof GradientDrawable) {
+            ((GradientDrawable) circleBackground).setColor(this.color);
+        }
 
         countTitle.setText(this.title);
         countText.setText(String.valueOf(this.count));

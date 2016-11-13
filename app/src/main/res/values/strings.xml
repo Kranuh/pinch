@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Pinch</string>
+    <string name="public_repos">Public Repos</string>
+    <string name="public_gists">Public Gists</string>
+    <string name="followers">Followers</string>
+    <string name="following">Following</string>
+    <string name="email_user">Email</string>
 </resources>
