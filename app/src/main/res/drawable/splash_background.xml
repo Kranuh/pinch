@@ -4,10 +4,10 @@
     <item
         android:drawable="@color/colorPrimary"/>
 
-    <item>
+    <item android:id="@+id/github_logo">
         <bitmap
             android:gravity="center"
-            android:src="@mipmap/ic_launcher"/>
+            android:src="@drawable/github_logo"/>
     </item>
 
 </layer-list>

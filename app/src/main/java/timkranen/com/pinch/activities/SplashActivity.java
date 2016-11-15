@@ -1,6 +1,8 @@
 package timkranen.com.pinch.activities;
 
 import android.content.Intent;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.net.Uri;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -36,6 +38,7 @@ public class SplashActivity extends AppCompatActivity {
             _router.setRoot(new SplashController());
         }
     }
+
 
     public void launchMainActivity() {
         Intent intent = new Intent(this, MainActivity.class);
