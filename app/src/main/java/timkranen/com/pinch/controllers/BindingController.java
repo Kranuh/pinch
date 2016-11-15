@@ -1,24 +1,37 @@
 package timkranen.com.pinch.controllers;
 
+import android.app.Activity;
 import android.support.annotation.LayoutRes;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.bluelinelabs.conductor.Controller;
+import com.bluelinelabs.conductor.rxlifecycle.RxController;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
+import rx.Observer;
+import rx.Subscriber;
+import rx.Subscription;
+import timkranen.com.pinch.activities.MainActivity;
 import timkranen.com.pinch.receivers.NavigationReceiver;
 
 /**
  * @author tim on [11/11/16]
  *
  * Class that handles Butterknife binding/unbinding
+ *
+ * This also handles the unsubscribe() action ondeatach, this prevents subscribers
+ * from being called after the activity is destroyed
  */
-public abstract class BindingController extends Controller {
+public abstract class BindingController extends RxController {
     private static final String TAG = BindingController.class.getSimpleName();
 
     protected Unbinder unbinder;
@@ -26,6 +39,8 @@ public abstract class BindingController extends Controller {
     public static int CONTROLLER_ID;
 
     private NavigationReceiver _navigationReceiver;
+
+    private final List<Subscription> currentSubscribers = new ArrayList<>();
 
     @NonNull
     @Override
@@ -51,6 +66,10 @@ public abstract class BindingController extends Controller {
         }
     }
 
+    protected void addSubscription(Subscription rxSubscriber) {
+        this.currentSubscribers.add(rxSubscriber);
+    }
+
     /**
      * This is like onPause
      * @param view
@@ -59,6 +78,17 @@ public abstract class BindingController extends Controller {
     protected void onDetach(@NonNull View view) {
         if(_navigationReceiver != null) {
             LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(_navigationReceiver);
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        if(currentSubscribers.size() > 0) {
+            for (Subscription currentSubscriber : currentSubscribers) {
+                currentSubscriber.unsubscribe();
+            }
         }
     }
 
@@ -88,5 +118,15 @@ public abstract class BindingController extends Controller {
         super.onDestroyView(view);
 
         unbinder.unbind();
+    }
+
+    @Nullable
+    private MainActivity getMainActivity() {
+        Activity activity = getActivity();
+        if(activity != null && activity instanceof MainActivity) {
+            return (MainActivity) activity;
+        } else {
+            return null;
+        }
     }
 }

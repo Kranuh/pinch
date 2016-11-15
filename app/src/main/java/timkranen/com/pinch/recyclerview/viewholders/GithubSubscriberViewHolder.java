@@ -66,6 +66,7 @@ public class GithubSubscriberViewHolder extends RecyclerView.ViewHolder {
 
         onSubscriberClickedListener.setContext(context);
         onSubscriberClickedListener.setLoginName(subscriber.getLogin());
+        onSubscriberClickedListener.enable();
 
     }
 
@@ -73,19 +74,27 @@ public class GithubSubscriberViewHolder extends RecyclerView.ViewHolder {
 
         private Context context;
         private String loginName;
+        private boolean isEnabled;
 
-        public void setContext(Context context) {
+        private void setContext(Context context) {
             this.context = context;
         }
 
-        public void setLoginName(String loginName) { this.loginName = loginName; }
+        private void setLoginName(String loginName) { this.loginName = loginName; }
+
+        private void enable() {
+            this.isEnabled = true;
+        }
 
         @Override
         public void onClick(View view) {
-            Intent intent = new Intent(NavigationReceiver.ACTION_NAVIGATE_TO);
-            intent.putExtra(NavigationReceiver.EXTRA_CONTROLLER_ID, UserController.CONTROLLER_ID);
-            intent.putExtra(NavigationReceiver.EXTRA_DETAIL_LOGIN_NAME, loginName);
-            LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+            if(isEnabled) {
+                Intent intent = new Intent(NavigationReceiver.ACTION_NAVIGATE_TO);
+                intent.putExtra(NavigationReceiver.EXTRA_CONTROLLER_ID, UserController.CONTROLLER_ID);
+                intent.putExtra(NavigationReceiver.EXTRA_DETAIL_LOGIN_NAME, loginName);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+                isEnabled = false;
+            }
         }
     }
 }

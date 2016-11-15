@@ -5,4 +5,7 @@
     <string name="followers">Followers</string>
     <string name="following">Following</string>
     <string name="email_user">Email</string>
+    <string name="no_subscribers_error">Whoops, no subscribers found</string>
+    <string name="no_access_error">Whoops, Github request limit reached</string>
+    <string name="failed_user_fetch">Whoops, we failed to retrieve the user data</string>
 </resources>

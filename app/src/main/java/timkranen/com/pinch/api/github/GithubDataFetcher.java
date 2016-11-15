@@ -2,6 +2,10 @@ package timkranen.com.pinch.api.github;
 
 import android.util.Log;
 
+import com.bluelinelabs.conductor.rxlifecycle.ControllerEvent;
+import com.bluelinelabs.conductor.rxlifecycle.RxController;
+import com.trello.rxlifecycle.RxLifecycle;
+
 import java.util.List;
 
 import rx.Observable;
@@ -28,7 +32,15 @@ import timkranen.com.pinch.model.GithubUser;
 public class GithubDataFetcher {
     private static final String TAG = GithubDataFetcher.class.getSimpleName();
 
-    public synchronized static void fetchSubscribers(String repoName, final RequestListener subscriberRequestListener) {
+    private final RxController lifeCycleController;
+    private final ControllerEvent controllerEvent;
+
+    public GithubDataFetcher(RxController lifeCycleController, ControllerEvent controllerEvent) {
+        this.lifeCycleController = lifeCycleController;
+        this.controllerEvent = controllerEvent;
+    }
+
+    public synchronized void fetchSubscribers(String repoName, final RequestListener subscriberRequestListener) {
         SubscriberApi subscriberApi = RestAdapter.getDebugAdapter(SubscriberApi.class, SubscriberApi.BASE_URL);
         subscriberApi.getSubscribers(repoName)
                 //we make sure that all operations that are blocking are called off the main thread
@@ -39,7 +51,7 @@ public class GithubDataFetcher {
                     @Override
                     public Observable<List<GithubSubscriber>> call(List<GithubSubscriber> githubSubscribers) {
                         if (githubSubscribers != null && !githubSubscribers.isEmpty()) {
-                            return new LocalStorageManager().cacheSubscribers(githubSubscribers);
+                            return new LocalStorageManager(lifeCycleController, controllerEvent).cacheSubscribers(githubSubscribers);
                         }
 
                         //callback for when the request failed, e.a. when we don't have valid data
@@ -48,6 +60,8 @@ public class GithubDataFetcher {
                     }
                 })
                 .subscribeOn(Schedulers.io())
+                //make sure the whole cycle is cancelled when appointed lifecycle event occurs
+                .compose(lifeCycleController.<List<GithubSubscriber>>bindUntilEvent(controllerEvent))
                 //we make sure that as soon as a result comes in we execute whatever comes after on the main thread
                 //this means that whenever a callback is fired to the RequestListener it can be used on the main thread
                 .observeOn(AndroidSchedulers.mainThread())
@@ -75,7 +89,7 @@ public class GithubDataFetcher {
                 });
     }
 
-    public static synchronized void fetchUser(String loginName, final RequestListener requestListener) {
+    public synchronized void fetchUser(String loginName, final RequestListener requestListener) {
         UserApi userApi = RestAdapter.getDebugAdapter(UserApi.class, UserApi.BASE_URL);
         userApi.getUser(loginName)
                 .subscribeOn(Schedulers.io())
@@ -84,12 +98,13 @@ public class GithubDataFetcher {
                     @Override
                     public Observable<GithubUser> call(GithubUser githubUser) {
                         if (githubUser != null) {
-                            return new LocalStorageManager().cacheUser(githubUser);
+                            return new LocalStorageManager(lifeCycleController, controllerEvent).cacheUser(githubUser);
                         }
 
                         return null;
                     }
                 })
+                .compose(lifeCycleController.<GithubUser>bindUntilEvent(controllerEvent))
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<GithubUser>() {

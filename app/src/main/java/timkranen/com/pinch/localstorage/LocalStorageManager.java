@@ -3,6 +3,10 @@ package timkranen.com.pinch.localstorage;
 import android.support.annotation.NonNull;
 import android.support.annotation.WorkerThread;
 
+import com.bluelinelabs.conductor.rxlifecycle.ControllerEvent;
+import com.bluelinelabs.conductor.rxlifecycle.RxController;
+import com.trello.rxlifecycle.RxLifecycle;
+
 import java.util.List;
 
 import io.paperdb.Paper;
@@ -24,8 +28,23 @@ public class LocalStorageManager {
 
     public static final String KEY_CACHED_SUBSCRIBERS = TAG + ".cachedSubscribers";
 
+
+    private final RxController lifeCycleController;
+    private final ControllerEvent controllerEvent;
+
+    /**
+     * Creates a LocalStorageManager, all operations done within
+     * the LocalStorageManager are executed on;
+     * @param lifeCycleController the controller on which the lifecycle depends
+     * @param controllerEvent canceled when the controllerEvent is triggered
+     */
+    public LocalStorageManager(RxController lifeCycleController, ControllerEvent controllerEvent) {
+        this.lifeCycleController = lifeCycleController;
+        this.controllerEvent = controllerEvent;
+    }
+
     public Observable<List<GithubSubscriber>> getCachedSubscribers() {
-        return Observable.create(new Observable.OnSubscribe<List<GithubSubscriber>>() {
+        Observable<List<GithubSubscriber>> observable = Observable.create(new Observable.OnSubscribe<List<GithubSubscriber>>() {
             @Override
             public void call(Subscriber<? super List<GithubSubscriber>> subscriber) {
                 List<GithubSubscriber> cachedSubscribers = Paper.book().read(KEY_CACHED_SUBSCRIBERS);
@@ -36,10 +55,13 @@ public class LocalStorageManager {
                 }
             }
         });
+
+        observable.compose(lifeCycleController.<List<GithubSubscriber>>bindUntilEvent(controllerEvent));
+        return observable;
     }
 
     public Observable<GithubUser> getCachedUser(final @NonNull String loginName) {
-        return Observable.create(new Observable.OnSubscribe<GithubUser>() {
+        Observable<GithubUser> observable = Observable.create(new Observable.OnSubscribe<GithubUser>() {
             @Override
             public void call(Subscriber<? super GithubUser> subscriber) {
                 if (!loginName.isEmpty() && hasCachedUser(loginName)) {
@@ -47,11 +69,14 @@ public class LocalStorageManager {
 
                     if (subscriber != null)
                         subscriber.onNext(githubUser);
+                } else {
+                    subscriber.onError(new IllegalStateException("No cached users"));
                 }
-
-                subscriber.onError(new IllegalStateException("No cached users"));
             }
         });
+
+        observable.compose(lifeCycleController.<GithubUser>bindUntilEvent(controllerEvent));
+        return observable;
     }
 
     public boolean hasCachedSubscribers() {
@@ -63,7 +88,7 @@ public class LocalStorageManager {
     }
 
     public Observable<List<GithubSubscriber>> cacheSubscribers(@NonNull final List<GithubSubscriber> githubSubscribers) {
-        return Observable.create(new Observable.OnSubscribe<List<GithubSubscriber>>() {
+        Observable<List<GithubSubscriber>> observable = Observable.create(new Observable.OnSubscribe<List<GithubSubscriber>>() {
             @Override
             public void call(Subscriber<? super List<GithubSubscriber>> subscriber) {
                 if (githubSubscribers == null || githubSubscribers.isEmpty()) {
@@ -74,10 +99,13 @@ public class LocalStorageManager {
                 subscriber.onNext(githubSubscribers);
             }
         });
+
+        observable.compose(lifeCycleController.<List<GithubSubscriber>>bindUntilEvent(controllerEvent));
+        return observable;
     }
 
     public Observable<GithubUser> cacheUser(@NonNull final GithubUser githubUser) {
-        return Observable.create(new Observable.OnSubscribe<GithubUser>() {
+        Observable<GithubUser> observable = Observable.create(new Observable.OnSubscribe<GithubUser>() {
             @Override
             public void call(Subscriber<? super GithubUser> subscriber) {
                 if (githubUser == null) {
@@ -88,5 +116,8 @@ public class LocalStorageManager {
                 subscriber.onNext(githubUser);
             }
         });
+
+        observable.compose(lifeCycleController.<GithubUser>bindUntilEvent(controllerEvent));
+        return observable;
     }
 }

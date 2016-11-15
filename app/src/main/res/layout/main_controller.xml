@@ -9,13 +9,19 @@
         android:layout_height="match_parent"/>
 
     <TextView
-        android:id="@+id/empty_text"
+        android:id="@+id/main_error_state"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        style="@style/TextAppearance.AppCompat.Subhead"
-        android:textColor="@color/textGray"
         android:layout_gravity="center"
-        android:visibility="gone"
-        android:text="No subscribers"/>
+        style="@style/TextAppearance.AppCompat.Body1"
+        android:textColor="@color/textGray"
+        android:visibility="gone"/>
+
+    <ProgressBar
+        android:id="@+id/main_progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone"/>
 
 </FrameLayout>

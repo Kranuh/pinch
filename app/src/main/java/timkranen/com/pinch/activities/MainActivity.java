@@ -1,11 +1,16 @@
 package timkranen.com.pinch.activities;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.bluelinelabs.conductor.Conductor;
 import com.bluelinelabs.conductor.Controller;
@@ -48,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
     /**
      * This will handle change events on an activity level,
      * with this we can set the back button etc.
+     *
+     * We hide the main container for the transition to avoid visual artifacts
      */
     private void addControllerChangeListener() {
         _router.addChangeListener(new ControllerChangeHandler.ControllerChangeListener() {
@@ -60,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onChangeCompleted(Controller to, Controller from, boolean isPush, ViewGroup container, ControllerChangeHandler handler) {
-
             }
         });
     }

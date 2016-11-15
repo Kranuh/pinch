@@ -10,4 +10,9 @@
         <item name="colorButtonNormal">@color/colorPrimary</item>
     </style>
 
+    <style name="SplashTheme" parent="AppTheme">
+        <!-- Customize your theme here. -->
+        <item name="android:windowBackground">@drawable/splash_background</item>
+    </style>
+
 </resources>

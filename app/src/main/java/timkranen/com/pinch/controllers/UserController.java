@@ -11,9 +11,12 @@ import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.AppCompatButton;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.bluelinelabs.conductor.rxlifecycle.ControllerEvent;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.target.BitmapImageViewTarget;
 
@@ -25,6 +28,7 @@ import timkranen.com.pinch.api.github.GithubDataFetcher;
 import timkranen.com.pinch.localstorage.LocalStorageManager;
 import timkranen.com.pinch.model.GithubUser;
 import timkranen.com.pinch.ui.views.CountCircularView;
+import timkranen.com.pinch.utils.StateViewManager;
 
 /**
  * @author tim on [11/12/16]
@@ -56,7 +60,18 @@ public class UserController extends BindingController {
     @BindView(R.id.email_button)
     protected AppCompatButton emailButton;
 
+    @BindView(R.id.user_content_container)
+    protected ViewGroup userContentContainer;
+
+    @BindView(R.id.user_progress)
+    protected ProgressBar userProgressBar;
+
+    @BindView(R.id.user_error_state)
+    protected TextView userErrorState;
+
     private String loginName;
+    private boolean didUserFetch = false;
+    private StateViewManager stateViewManager;
 
     @Override
     protected int getLayoutResId() {
@@ -65,6 +80,8 @@ public class UserController extends BindingController {
 
     @Override
     protected void onViewBound(@NonNull View contentView) {
+        stateViewManager = new StateViewManager(userContentContainer, userProgressBar, userErrorState);
+        stateViewManager.setInProgress(true);
         startUserFetch();
     }
 
@@ -73,7 +90,7 @@ public class UserController extends BindingController {
         getCachedUser();
 
         //fetch a new user object
-        GithubDataFetcher.fetchUser(this.loginName, new RequestListener() {
+        new GithubDataFetcher(this, ControllerEvent.DESTROY).fetchUser(this.loginName, new RequestListener() {
             @Override
             public void onRequestCompleted() {
                 getCachedUser();
@@ -81,8 +98,15 @@ public class UserController extends BindingController {
 
             @Override
             public void onRequestFailed(Throwable e) {
-                Log.e(TAG, "Request failed, " + e.getMessage());
-                //show error state
+                Log.e(TAG, e.getMessage());
+                stateViewManager.setInProgress(false);
+                if(!didUserFetch) {
+                    if (e.getMessage().contains("Forbidden")) {
+                        stateViewManager.setErrorState(getActivity().getString(R.string.no_access_error));
+                    } else {
+                        stateViewManager.setErrorState(getActivity().getString(R.string.failed_user_fetch));
+                    }
+                }
             }
 
             @Override
@@ -94,7 +118,7 @@ public class UserController extends BindingController {
     }
 
     private void getCachedUser() {
-        LocalStorageManager localStorageManager = new LocalStorageManager();
+        LocalStorageManager localStorageManager = new LocalStorageManager(this, ControllerEvent.DESTROY);
         if(localStorageManager.hasCachedUser(this.loginName)) {
             localStorageManager.getCachedUser(this.loginName)
                     .subscribe(new Observer<GithubUser>() {
@@ -105,10 +129,14 @@ public class UserController extends BindingController {
 
                         @Override
                         public void onError(Throwable e) {
+                            Log.e(TAG, e.getMessage());
+
+                            //this error is not failing so we don't show an error message here
                         }
 
                         @Override
                         public void onNext(GithubUser githubUser) {
+                            stateViewManager.setInProgress(false);
                             userFetched(githubUser);
                         }
                     });
@@ -116,6 +144,8 @@ public class UserController extends BindingController {
     }
 
     private void userFetched(GithubUser githubUser) {
+        didUserFetch = true;
+
         createdAtTextView.setText("User since: " + githubUser.getCreatedAt().toString());
         loginNameTextView.setText(githubUser.getLogin());
 
